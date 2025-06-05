@@ -4,5 +4,5 @@ icon: fas fa-info-circle
 order: 4
 ---
 
-> Hi! I'm a Threat Researcher at DeXpose and blog author at ANY.RUN & Cyber5W. Interested in Malware Analysis and Threat Intelliegnce.
+> Hi! I'm a bug bounty hunter and pentester, 16 years old. Interested in web security, ethical hacking, and vulnerability research.
 {: .prompt-tip }

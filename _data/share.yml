@@ -4,15 +4,12 @@
 platforms:
   - type: Twitter
     icon: "fa-brands fa-square-x-twitter"
-    link: "https://twitter.com/intent/tweet?text=TITLE&url=URL"
+    link: "https://x.com/yahiasherif0"
 
-  - type: Facebook
-    icon: "fab fa-facebook-square"
-    link: "https://www.facebook.com/sharer/sharer.php?title=TITLE&u=URL"
 
   - type: Telegram
     icon: "fab fa-telegram"
-    link: "https://t.me/share/url?url=URL&text=TITLE"
+    link: "https://t.me/share/url?url=https://t.me/yahiasherif12&text=TITLE"
 
   # Uncomment below if you need to.
   #

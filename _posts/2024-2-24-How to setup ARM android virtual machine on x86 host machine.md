@@ -1,82 +1,70 @@
 ---
-title: "How to setup ARM android virtual machine on x86 host machine"
+title: "Bypassing Pro Tier Paywall with a Business Logic Flaw"
 classes: wide
 header:
-  teaser: /assets/images/site-images/AndroidARM.jpeg
 ribbon: ForestGreen
 description: ""
 categories:
-  - Tutorials
+  - Broken Access Control 
 toc: true
 
 
 ---
 
-# Why I wrote this?
+# First, what are business logic errors?
+Business logic errors are flaws in an application’s design that allow attackers to manipulate functionalities by interacting with the system in unintended ways. These vulnerabilities can disrupt workflows, bypass security controls, and ultimately lead to financial and reputational losses for the business.
 
-After struggling for four consecutive days to set it up, I encountered numerous errors and realized that I was not the only one facing such problems. Therefore, I decided to write an article to help anyone who wants to run an Android ARM machine, so they don't waste their time trying to figure out the correct way.
+# The story
+I was browsing bugcrowd to look for a program to hunt on until I found a target. The report is not disclosed yet so let's name the target: target.com
 
-# How to setup?
+target.com is a platform designed to help users create a landing page that houses multiple links. Content creators commonly use it to share various links from their social media bios
 
-First we need to turn on hyper-V
+our program has 2 tiers free and pro memberships, so the first thing that came to my mind is let's try business logic errors!
 
-![](/assets/images/How to setup ARM android virtual machine on x86 host machine/image5.jpg)
+Fortunately, the program had a 30-day trial on the pro membership, so I made 2 accounts one with the free tier and another one with the pro tier, and started mapping the application and noting every function in it
 
-![](/assets/images/How to setup ARM android virtual machine on x86 host machine/image6.jpg)
+Several features were restricted to Pro users, including changing the page appearance and accessing premium themes. I tested these features, but all attempts returned 401 Unauthorized responses.
 
-If you don't have hyper-v you need to install this (also of this tutorial didn't work with you you need to install it)
+I spent about two days testing various functions, I thought the application was secure. However, nothing is ever completely secure
+
+I found a function that allows only pro-tier users to invite additional admins to manage their accounts I captured the request in my pro account and it looked like this
 
 ```
-https://github.com/google/android-emulator-hypervisor-driver/releases
+POST /graphql HTTP/2
+Host: graph.target.com
+User-Agent: Mozilla/5.0
+Accept: */*
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br
+Content-Type: application/json
+Authorization: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ikh1UmRwOUd6dTY2ZXJpN05SSS1LSSJ9..."
+Content-Length: 262
+Origin: https://target.com
+Sec-Fetch-Dest: empty
+Sec-Fetch-Mode: cors
+Sec-Fetch-Site: same-site
+Priority: u=0
+Te: trailers
+
+{"variables":{"identifier":"invited+gmail@gmail.com","accountId":"95868158"},"query":"mutation ($identifier: String!, $accountId: String!) {\n inviteAdmin(identifier: $identifier, accountId: $accountId) {\n result\n message\n __typename\n }\n}"}
 ```
-Next we need to navigate to
+Let's break down the request …
 
-```
-https://stackoverflow.com/questions/37505709/how-do-i-download-the-android-sdk-without-downloading-android-studio/51429326#51429326
-```
-and download **SDK Installer_r24.4.1** 
+The **identifier** value carries the invited admin Gmail
 
-![](/assets/images/How to setup ARM android virtual machine on x86 host machine/image1.jpg)
+The **accountId** value carries the user ID
 
-# Which android version to install?
+- First, i invited an admin using my Pro account. The invited user received a notification.
+- Then, I replaced the authorization header with my Free account’s token and changed the accountId to my Free user ID.
+- I sent the invite, and it returned 200 OK instead of 401
 
-First open **SDK Manager**
+but I opened the invited account and didn't receive a notification!
 
-I tried many versions of ARM android images and the only version worked is **7.1.1 API 25**
+I attempted the exploit multiple times, but it didn’t seem to work — until I checked my Gmail. The invitation was sent via email, not through the application itself!
 
-![](/assets/images/How to setup ARM android virtual machine on x86 host machine/image3.jpg)
+![](/assets/images/site-images/1_ihJGosw4MpnylcXaf6DwVg.jpg)
 
-You need to install these also
-
-![](/assets/images/How to setup ARM android virtual machine on x86 host machine/image2.jpg)
-
-The intel HAXM is required to run this avd HAXM is not installed error message can be solved by installing **intel x86 emulator accelerator**:
-
-![](/assets/images/How to setup ARM android virtual machine on x86 host machine/image4.jpg)
-
-install this also
-```
-https://github.com/intel/haxm
-```
-
-Now open **AVD Manager**
-
-![](/assets/images/How to setup ARM android virtual machine on x86 host machine/image7.jpg)
-
-In my case if I choosed a device rather than **Nexus 4** or **WXGA Tablet** the vm won't work. (I really don't know why)
-
-Also make the internal storage 200 - 500 mb if the machine didn't open
-
-And check **use host gpu** option
-
-Now let's start the machine
-
-![](/assets/images/How to setup ARM android virtual machine on x86 host machine/image8.jpg)
-
-![](/assets/images/How to setup ARM android virtual machine on x86 host machine/image9.jpg)
-
-It worked!
-
-if you faced any errors feel free to contact me
+I accepted the invite, logged into my Free account, and to my surprise — I had successfully added an admin to my Free-tier account!
+![](/assets/images/site-images/1_ihJGosw4MpnylcXaf6DwVg.jpg)
 
 Thanks For Reading :)

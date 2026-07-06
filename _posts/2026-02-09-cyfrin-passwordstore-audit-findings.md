@@ -1,111 +1,44 @@
 ---
-title: "Cyfrin PasswordStore Audit Findings"
-date: 2026-02-09 08:00:00 +0000
-categories: [CTF]
-tags: [solidity, "smart contracts", "Sensitive Data Exposure", "Broken Access Control"]
+title: "Unsafe transfer() Causes DoS for Multisig and Smart Contract Wallets"
+date: 2026-06-10
+categories: [Bug Bounty]
+tags: [solidity, "smart contracts", "DoS",]
 ---
 
-# Cyfrin passwordStore Findings
+# Unsafe `transfer()` Causes DoS for Multisig and Smart Contract Wallets
 
-# [H-1] Storing password on-chain makes it visible to everyone
+## Brief
 
-### Description:
+The `syncUserWeight()` function uses the unsafe payable `transfer()` method to refund excess ETH to users.
 
-> All data stored on-chain are visible to anyone, and can be read directly from the blockchain. the `PasswordStore::s_password` is meant to be private variable and only accessed through the `PasswordStore::getPassword()` function, which is intended to be only called by the owner of the contracts.
-> 
+## Vulnerability Details
 
-### Impact
+The `syncUserWeight()` function refunds excess ETH using payable `transfer()`. Since `transfer()` forwards only 2300 gas, refunds can fail when the recipient is a multisig or smart contract wallet with complex `receive()` or `fallback()` logic, causing the entire transaction to revert and resulting in a denial of service.
 
-Anyone can read the private password, breaking the functionality of the protocol.
-
-### Proof of Concept
-
-The test case below shows how anyone can read the private password directly from the blockchain.
-
-1. Create a locally running blockchain
-
-```bash
-make anvil
-```
-
-1. Deploy the contract to the chain
-
-```bash
-make deploy
-```
-
-1. Get the contract storage data
-
-```bash
-cast storage <contract-address> 1
-```
-
-> We use 1 because its the storage slot of `s_password` in the contract
-> 
-
-You will get the output like this:
-
-`0x6d7950617373776f726400000000000000000000000000000000000000000014`
-
-1. Then you can parse the hex to string using :
-
-```bash
-cast parse-bytes32-string 0x6d7950617373776f726400000000000000000000000000000000000000000014
-```
-
-output will be 
-
-```bash
-myPassword
-```
-
-### Mitigation
-
-> Sensitive data such as passwords must never be stored in plaintext on-chain. Since all blockchain storage is publicly accessible, marking a variable as `private` does not make it confidential — it only restricts access at the Solidity language level, not at the blockchain level.
-> 
-
-# [H-2] `PasswordStore::setPassword` has no access control meaning non owner can change the password
-
-### Description:
-
-> The `PasswordStore::setPassword` function meant to be only accessible by the owner but there is no restrictions implemented on the function meaning any one can call the function and change the password
-> 
-
+## Code Snippet
 ```solidity
-function setPassword(string memory newPassword) external {
-        s_password = newPassword;
-        emit SetNewPassword();
-    }
+        if ((msg.value - fee) != 0) {
+            payable(_msgSender()).transfer(msg.value - fee);
+        }
 ```
 
-### Impact
+## Impact Details
 
-Anyone can set/change the password, breaking the contract functionality
+Transactions will revert when:
 
-### Proof of Concept
+- The recipient contract does not implement a payable function.
+- The recipient's payable `receive()` or `fallback()` function requires more than 2300 gas.
+- The recipient is a proxy-based smart contract wallet where the forwarded gas is insufficient.
 
-Add the following to the `passwordStore.t.sol` test file
+As a result, multisig and smart contract wallet users may be unable to successfully execute the affected functions.
 
-```solidity
-function testAnyoneCanSetPassword(address randomAddress) public {
-string memory expectedPassword = "newpassword";
-vm.prank(randomAddress);
-passwordstore.setPassword(expectedPassword);
-vm.prank(owner);
-string memory actualPassword = passwordstore.getPassword();
-assertEq(expectedPassword, actualPassword);
-}
+## Mitigation
+
+```diff
+- payable(_msgSender()).transfer(msg.value - fee);
+
++ (bool success, ) = payable(_msgSender()).call{value: msg.value - fee}("");
++ require(success, "ETH refund failed");
+
 ```
 
-Notice that the test passed confirming that the `passwordStore::setPassword` is callable by any user address
-
-### Mitigation
-
-> Add an access control check that verify that the caller is the owner
-> 
-
-```solidity
-if (msg.sender != owner){
-revert PasswordStore__NotOwner();
-}
-```

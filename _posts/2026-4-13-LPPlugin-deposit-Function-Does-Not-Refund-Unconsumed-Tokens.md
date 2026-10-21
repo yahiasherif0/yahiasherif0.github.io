@@ -89,7 +89,4 @@ Step 5: No code returns unused tokens to user:
 }
 ```
 
-```bash
-Place DepositPoc.spec.ts in /test/ and run
-npx hardhat test test/DepositPoc.spec.ts
-```
+

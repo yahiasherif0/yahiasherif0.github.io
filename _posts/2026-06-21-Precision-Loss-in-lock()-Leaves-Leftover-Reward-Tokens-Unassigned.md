@@ -5,8 +5,6 @@ categories: [Bug Bounty]
 tags: [solidity, "smart contracts", "precision loss"]
 ---
 
-# Precision Loss in `lock()` Leaves Leftover Reward Tokens Unassigned
-
 ## Brief
 
 A precision loss in the division operation inside the VestingMaster.lock() function leads to permanent freezing of the remaining funds, making them unclaimable.

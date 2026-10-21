@@ -5,8 +5,6 @@ categories: [Bug Bounty]
 tags: [solidity, "smart contracts", oracle, "circuit breaker"]
 ---
 
-# Attacker bypass of the PriceVelocityGuard circuit breaker
-
 ## Summary
 
 The PriceVelocityGuard extension is designed to protect the pool from market crashes by limiting the price drop per block to a percentage set by the admin. However, the wrong implementation will cause a bypass of this protection for the pool as an attacker will execute many small swaps in the same block.

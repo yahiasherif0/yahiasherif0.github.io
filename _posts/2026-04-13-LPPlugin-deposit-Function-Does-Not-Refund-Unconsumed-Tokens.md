@@ -5,8 +5,6 @@ categories: [Bug Bounty]
 tags: [solidity, "smart contracts", "DeFi"]
 ---
 
-# LPPlugin::deposit Function Does Not Refund Unconsumed Tokens
-
 ## Summary
 
 The LPPlugin::deposit function does not refund unconsumed tokens, causing permanent loss of user funds when depositing into out-of-range tick positions.

@@ -5,8 +5,6 @@ categories: [Bug Bounty]
 tags: [solidity, "smart contracts", "staking", "rewards"]
 ---
 
-# Silently Capped Reward Transfer Functions Can Cause Permanent Loss of Accrued Rewards for Stakers
-
 ## Brief
 
 This vulnerability affects both LiquidityMiningMaster and LiquidityMiningMaster V1.1 deployed contracts. Both contracts distribute mining rewards to users during deposit and withdraw calls, and both implement a silent capping mechanism that can cause permanent reward loss.

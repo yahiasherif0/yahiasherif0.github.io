@@ -5,8 +5,6 @@ categories: [Bug Bounty]
 tags: [solidity, "smart contracts", "DoS",]
 ---
 
-# Unsafe `transfer()` Causes DoS for Multisig and Smart Contract Wallets
-
 ## Brief
 
 The `syncUserWeight()` function uses the unsafe payable `transfer()` method to refund excess ETH to users.

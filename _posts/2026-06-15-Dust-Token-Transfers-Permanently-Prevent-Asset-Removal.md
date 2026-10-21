@@ -5,8 +5,6 @@ categories: [Bug Bounty]
 tags: [solidity, "smart contracts", "DoS"]
 ---
 
-# Dust Token Transfers Permanently Prevent Asset Removal
-
 ## Brief
 
 Transferring dust amounts to vaults leads to Dos of the removeAsset() function
